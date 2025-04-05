@@ -36,7 +36,6 @@ const migrateUp = async () => {
         profile_pic TEXT,
         email CITEXT UNIQUE NOT NULL,
         current_rating INT DEFAULT 400 CHECK (current_rating >= 0),
-        age INT NOT NULL CHECK (age >= 0),
         created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
     `);
@@ -48,5 +47,5 @@ const migrateUp = async () => {
     conn.end();
   }
 };
-
+      //age INT NOT NULL CHECK (age >= 0),
 migrateUp();

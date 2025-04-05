@@ -35,7 +35,7 @@ const createGameWithRoomId = async (userId) => {
 			throw new Error("Failed to create game");
 		}
 
-		// Remove the code from available and add to used
+		// Remove the code from available and add to use
 		availableRoomCodes.delete(roomId);
 		usedRoomCodes.add(roomId);
 
