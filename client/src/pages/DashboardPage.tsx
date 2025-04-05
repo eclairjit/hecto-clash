@@ -1,19 +1,16 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import authService from '../services/auth';
-import { signOutSuccess } from '../redux/user/userSlice';
-import { RootState } from '../redux/store'; // Assuming you have RootState defined
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { currentUser } = useSelector((state: RootState) => state.user); // Get user from Redux
+  const { currentUser } = useSelector((state: RootState) => state.user);
   
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!currentUser) {
-      navigate('/'); // Or '/login' if that's your login route
+      navigate('/');
     }
   }, [currentUser, navigate]);
 
@@ -25,12 +22,6 @@ const DashboardPage: React.FC = () => {
     navigate('/join-room');
   };
 
-  const handleLogout = () => {
-    authService.logout(); // Clear local storage etc.
-    dispatch(signOutSuccess()); // Clear Redux state
-    navigate('/'); // Navigate to home/login page
-  };
-
   // Render null or a loading indicator while checking auth state or if currentUser is null
   if (!currentUser) {
     return null; // Or a loading spinner
@@ -38,58 +29,23 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: 'var(--bg-light)' 
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      <header style={{ 
-        backgroundColor: 'white', 
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' 
-      }}>
-        <div style={{ 
-          maxWidth: '80rem', 
-          margin: '0 auto', 
-          padding: '1rem', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center' 
-        }}>
-          <h1 className="gradient-text" style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold' 
-          }}>HECTOCLASH</h1>
-          <div>
-            <button 
-              onClick={handleLogout}
-              style={{ 
-                backgroundColor: 'transparent',
-                color: 'var(--secondary)',
-                border: '1px solid var(--secondary)',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.375rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-      
       <main style={{ 
         maxWidth: '80rem', 
         margin: '0 auto', 
-        padding: '2rem 1rem' 
+        padding: '2rem 1rem',
+        width: '100%'
       }}>
         <div style={{ marginBottom: '2rem' }}>
           <h2 style={{ 
             fontSize: '1.25rem', 
             fontWeight: '600', 
-            color: 'var(--text)'
-            // Use optional chaining in case currentUser is briefly null or lacks name
+            color: 'var(--text-primary)'
           }}>Welcome, {currentUser?.username || 'Player'}!</h2> 
-          <p style={{ color: 'var(--text-light)' }}>Choose an option below to start playing</p>
+          <p style={{ color: 'var(--text-secondary)' }}>Choose an option below to start playing</p>
         </div>
         
         <div style={{ 
@@ -99,30 +55,30 @@ const DashboardPage: React.FC = () => {
         }}>
           {/* Create Game Card */}
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'var(--bg-primary)',
             borderRadius: '0.5rem',
             padding: '1.5rem',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px var(--shadow-color)',
+            border: '1px solid var(--border-color)',
             transition: 'all 0.3s'
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            e.currentTarget.style.boxShadow = '0 10px 15px -3px var(--shadow-color)';
             e.currentTarget.style.transform = 'translateY(-2px)';
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+            e.currentTarget.style.boxShadow = '0 1px 3px var(--shadow-color)';
             e.currentTarget.style.transform = 'translateY(0)';
           }}
           >
             <h3 style={{ 
               fontSize: '1.25rem', 
               fontWeight: 'bold', 
-              color: 'var(--text)', 
+              color: 'var(--text-primary)', 
               marginBottom: '0.75rem' 
             }}>Create Match</h3>
             <p style={{ 
-              color: 'var(--text-light)', 
+              color: 'var(--text-secondary)', 
               marginBottom: '1.5rem' 
             }}>
               Create your own HectoClash battle room and invite an opponent to join you in this mathematical showdown.
@@ -146,30 +102,30 @@ const DashboardPage: React.FC = () => {
           
           {/* Join Game Card */}
           <div style={{ 
-            backgroundColor: 'white',
+            backgroundColor: 'var(--bg-primary)',
             borderRadius: '0.5rem',
             padding: '1.5rem',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px var(--shadow-color)',
+            border: '1px solid var(--border-color)',
             transition: 'all 0.3s'
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+            e.currentTarget.style.boxShadow = '0 10px 15px -3px var(--shadow-color)';
             e.currentTarget.style.transform = 'translateY(-2px)';
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+            e.currentTarget.style.boxShadow = '0 1px 3px var(--shadow-color)';
             e.currentTarget.style.transform = 'translateY(0)';
           }}
           >
             <h3 style={{ 
               fontSize: '1.25rem', 
               fontWeight: 'bold', 
-              color: 'var(--text)', 
+              color: 'var(--text-primary)', 
               marginBottom: '0.75rem' 
             }}>Join Match</h3>
             <p style={{ 
-              color: 'var(--text-light)', 
+              color: 'var(--text-secondary)', 
               marginBottom: '1.5rem' 
             }}>
               Enter a room code to join an existing battle. Test your skills against another player who's ready to take you on.
@@ -197,10 +153,10 @@ const DashboardPage: React.FC = () => {
           <h3 style={{ 
             fontSize: '1.125rem', 
             fontWeight: '600', 
-            color: 'var(--text)', 
+            color: 'var(--text-primary)', 
             marginBottom: '1rem', 
             paddingBottom: '0.5rem', 
-            borderBottom: '1px solid #e5e7eb' 
+            borderBottom: '1px solid var(--border-color)'
           }}>Your HectoClash Stats</h3>
           <div style={{ 
             display: 'grid', 
@@ -208,53 +164,53 @@ const DashboardPage: React.FC = () => {
             gap: '1rem' 
           }}>
             <div style={{ 
-              backgroundColor: 'white', 
+              backgroundColor: 'var(--bg-primary)', 
               padding: '1rem', 
               borderRadius: '0.375rem', 
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', 
+              boxShadow: '0 1px 2px var(--shadow-color)', 
               textAlign: 'center' 
             }}>
               <p style={{ 
                 fontSize: '1.875rem', 
                 fontWeight: 'bold', 
-                color: 'var(--text)' 
+                color: 'var(--text-primary)' 
               }}>0</p>
               <p style={{ 
-                color: 'var(--text-light)', 
+                color: 'var(--text-secondary)', 
                 fontSize: '0.875rem' 
               }}>Matches</p>
             </div>
             <div style={{ 
-              backgroundColor: 'white', 
+              backgroundColor: 'var(--bg-primary)', 
               padding: '1rem', 
               borderRadius: '0.375rem', 
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', 
+              boxShadow: '0 1px 2px var(--shadow-color)', 
               textAlign: 'center' 
             }}>
               <p style={{ 
                 fontSize: '1.875rem', 
                 fontWeight: 'bold', 
-                color: 'var(--text)' 
+                color: 'var(--text-primary)' 
               }}>0</p>
               <p style={{ 
-                color: 'var(--text-light)', 
+                color: 'var(--text-secondary)', 
                 fontSize: '0.875rem' 
               }}>Wins</p>
             </div>
             <div style={{ 
-              backgroundColor: 'white', 
+              backgroundColor: 'var(--bg-primary)', 
               padding: '1rem', 
               borderRadius: '0.375rem', 
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', 
+              boxShadow: '0 1px 2px var(--shadow-color)', 
               textAlign: 'center' 
             }}>
               <p style={{ 
                 fontSize: '1.875rem', 
                 fontWeight: 'bold', 
-                color: 'var(--text)' 
+                color: 'var(--text-primary)' 
               }}>0%</p>
               <p style={{ 
-                color: 'var(--text-light)', 
+                color: 'var(--text-secondary)', 
                 fontSize: '0.875rem' 
               }}>Win Rate</p>
             </div>

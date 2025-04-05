@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import gameSocket from './services/websocket';
+import { ThemeProvider } from './context/ThemeContext';
+import Layout from './components/Layout';
+import './styles/theme.css';
 
 const App: React.FC = () => {
 	// Global event listeners for WebSocket
@@ -33,9 +36,11 @@ const App: React.FC = () => {
 	}, []);
 	
 	return (
-		<div className="app">
-			<Outlet />
-		</div>
+		<ThemeProvider>
+			<Layout>
+				<Outlet />
+			</Layout>
+		</ThemeProvider>
 	);
 };
 

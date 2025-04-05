@@ -11,10 +11,10 @@ const JoinRoomPage: React.FC = () => {
   
   // Check if user is logged in
   React.useEffect(() => {
-    if (!authService.isAuthenticated()) {
-      navigate('/');
-      return;
-    }
+    // if (!authService.isAuthenticated()) {
+    //   navigate('/');
+    //   return;
+    // }
   }, [navigate]);
   
   const handleRoomIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,62 +58,57 @@ const JoinRoomPage: React.FC = () => {
   };
   
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-light)' }}>
-      <header style={{ 
-        backgroundColor: 'white', 
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+    <div style={{ 
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
+    }}>
+      <div style={{ 
+        width: '100%',
+        maxWidth: '32rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.5rem',
       }}>
         <div style={{ 
-          maxWidth: '80rem', 
-          margin: '0 auto', 
-          padding: '1rem'
-        }}>
-          <h1 className="gradient-text" style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold' 
-          }}>HECTOCLASH</h1>
-        </div>
-      </header>
-      
-      <main style={{ 
-        maxWidth: '32rem', 
-        margin: '0 auto', 
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '2rem', 
-          borderRadius: '0.5rem', 
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+          backgroundColor: 'var(--bg-primary)',
+          padding: '2.5rem',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px var(--shadow-color)',
         }}>
           <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold', 
-            marginBottom: '1.5rem' 
-          }}>
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            marginBottom: '2rem',
+            textAlign: 'center',
+          }} className="gradient-text">
             Join a Game
           </h2>
           
           {error && (
             <div style={{ 
-              backgroundColor: '#fee2e2', 
-              color: '#b91c1c', 
-              padding: '0.75rem', 
-              borderRadius: '0.375rem', 
-              marginBottom: '1.5rem'
+              backgroundColor: 'var(--error-bg)',
+              color: 'var(--error-text)',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              marginBottom: '1.5rem',
+              border: '1px solid var(--error-border)',
             }}>
               {error}
             </div>
           )}
           
           <form onSubmit={handleJoinRoom}>
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '2rem' }}>
               <label 
                 htmlFor="roomId" 
                 style={{ 
-                  display: 'block', 
-                  marginBottom: '0.5rem',
-                  fontWeight: '500'
+                  display: 'block',
+                  marginBottom: '0.75rem',
+                  fontWeight: '500',
+                  color: 'var(--text-primary)',
                 }}
               >
                 Room Code
@@ -126,53 +121,73 @@ const JoinRoomPage: React.FC = () => {
                 placeholder="Enter room code"
                 autoComplete="off"
                 style={{ 
-                  width: '100%', 
-                  padding: '0.75rem', 
-                  border: '1px solid #d1d5db', 
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem'
+                  width: '100%',
+                  padding: '1rem',
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '0.5rem',
+                  fontSize: '1.1rem',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.2s ease',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'var(--primary)';
+                  e.target.style.boxShadow = '0 0 0 2px var(--primary-transparent)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'var(--border-color)';
+                  e.target.style.boxShadow = 'none';
                 }}
               />
             </div>
             
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div style={{ 
+              display: 'flex',
+              gap: '1rem'
+            }}>
               <button
                 type="submit"
                 disabled={isLoading}
                 style={{ 
+                  flex: 1,
+                  padding: '1rem',
                   backgroundColor: 'var(--primary)',
                   color: 'white',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  fontWeight: '500',
-                  flex: '1',
                   border: 'none',
+                  borderRadius: '0.5rem',
+                  fontWeight: '600',
                   cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.7 : 1
+                  opacity: isLoading ? 0.7 : 1,
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 8px var(--shadow-color)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }
                 }}
               >
                 {isLoading ? (
                   <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
                   }}>
                     <div style={{ 
+                      width: '1rem',
+                      height: '1rem',
+                      borderRadius: '50%',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderTopColor: 'white',
                       animation: 'spin 1s linear infinite',
-                      height: '1rem', 
-                      width: '1rem', 
-                      borderRadius: '9999px',
-                      borderTop: '2px solid white',
-                      borderRight: '2px solid transparent',
-                      borderBottom: '2px solid white',
-                      borderLeft: '2px solid transparent',
-                      marginRight: '0.5rem'
                     }}></div>
-                    <style>{`
-                      @keyframes spin {
-                        to { transform: rotate(360deg); }
-                      }
-                    `}</style>
                     Joining...
                   </div>
                 ) : 'Join Game'}
@@ -181,13 +196,22 @@ const JoinRoomPage: React.FC = () => {
                 type="button"
                 onClick={() => navigate('/dashboard')}
                 style={{
-                  border: '1px solid var(--secondary)',
-                  color: 'var(--secondary)',
-                  backgroundColor: 'transparent', 
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
+                  padding: '1rem',
+                  backgroundColor: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '0.5rem',
                   fontWeight: '500',
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--hover-border)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-primary)';
+                  e.currentTarget.style.borderColor = 'var(--border-color)';
                 }}
               >
                 Cancel
@@ -197,17 +221,20 @@ const JoinRoomPage: React.FC = () => {
         </div>
         
         <div style={{ 
-          backgroundColor: '#ebf5ff', 
-          padding: '1rem', 
-          borderRadius: '0.5rem', 
-          border: '1px solid #bfdbfe',
-          marginTop: '1.5rem'
+          backgroundColor: 'var(--info-bg)',
+          padding: '1.5rem',
+          borderRadius: '0.75rem',
+          border: '1px solid var(--info-border)',
         }}>
-          <h3 style={{ fontWeight: '500', marginBottom: '0.5rem' }}>Don't have a code?</h3>
+          <h3 style={{ 
+            fontWeight: '600',
+            marginBottom: '0.75rem',
+            color: 'var(--info-text)',
+          }}>Don't have a code?</h3>
           <p style={{ 
-            fontSize: '0.875rem', 
-            color: 'var(--text)', 
-            marginBottom: '0.75rem'
+            fontSize: '0.9rem',
+            color: 'var(--info-text)',
+            marginBottom: '1rem',
           }}>
             Ask your friend to create a room and share the code with you.
           </p>
@@ -216,18 +243,27 @@ const JoinRoomPage: React.FC = () => {
             style={{ 
               backgroundColor: 'var(--primary)',
               color: 'white',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '0.375rem',
+              padding: '0.75rem 1.25rem',
+              borderRadius: '0.5rem',
               fontWeight: '500',
               border: 'none',
-              fontSize: '0.875rem',
-              cursor: 'pointer'
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 8px var(--shadow-color)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             Create a Room Instead
           </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

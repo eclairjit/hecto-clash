@@ -6,50 +6,16 @@ const HomePage: React.FC = () => {
   
   return (
     <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      backgroundColor: 'var(--bg-light)'
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      {/* Navbar */}
-      <header style={{ 
-        backgroundColor: 'white', 
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{
-          maxWidth: '80rem',
-          margin: '0 auto',
-          padding: '1rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <h1 className="gradient-text" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>HECTOCLASH</h1>
-          <button
-            onClick={() => navigate('/login')}
-            className="btn"
-            style={{ 
-              backgroundColor: 'var(--primary)',
-              color: 'white',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.375rem',
-              fontWeight: '500',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-          >
-            Login
-          </button>
-        </div>
-      </header>
-      
-      {/* Hero Section */}
       <main style={{ 
-        flexGrow: 1, 
+        flex: 1,
         display: 'flex', 
         alignItems: 'center', 
-        justifyContent: 'center'
+        justifyContent: 'center',
+        padding: '2rem'
       }}>
         <div style={{ 
           textAlign: 'center', 
@@ -60,13 +26,13 @@ const HomePage: React.FC = () => {
             fontSize: '3.75rem', 
             fontWeight: 'bold', 
             marginBottom: '1rem'
-          }}>
-            <span className="gradient-text">HECTOCLASH</span>
+          }} className="gradient-text">
+            HECTOCLASH
           </h1>
           <p style={{ 
             fontSize: '1.25rem', 
             marginBottom: '2rem', 
-            color: 'var(--text)',
+            color: 'var(--text-primary)',
             lineHeight: '1.75'
           }}>
             Battle your way to coding glory! Solve mathematical challenges faster than your opponent in this
@@ -78,39 +44,27 @@ const HomePage: React.FC = () => {
               backgroundColor: 'var(--primary)',
               color: 'white',
               padding: '0.75rem 2rem',
-              borderRadius: '0.375rem',
+              borderRadius: '0.5rem',
               fontSize: '1.125rem',
               fontWeight: '600',
               border: 'none',
               cursor: 'pointer',
               transition: 'all 0.2s',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 6px var(--shadow-color)'
             }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 8px var(--shadow-color)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px var(--shadow-color)';
+            }}
           >
             Get Started
           </button>
         </div>
       </main>
-      
-      {/* Footer */}
-      <footer style={{ 
-        backgroundColor: 'white', 
-        padding: '1.5rem 0', 
-        borderTop: '1px solid #e5e7eb'
-      }}>
-        <div style={{ 
-          maxWidth: '80rem', 
-          margin: '0 auto', 
-          padding: '0 1rem', 
-          textAlign: 'center', 
-          color: 'var(--text-light)', 
-          fontSize: '0.875rem'
-        }}>
-          <p>© 2023 HectoClash. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 };

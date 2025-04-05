@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import gameService from '../services/game';
 import { RootState } from '../redux/store';
 import { current } from '@reduxjs/toolkit';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface RoomInfo {
   id: string;
@@ -20,22 +21,13 @@ const CreateRoomPage: React.FC = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
-const  currentUser = useSelector((state: RootState) => state.user.currentUser); // Get user from Redux
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  
   useEffect(() => {
     const createRoom = async () => {
       try {
         setIsLoading(true);
         setError('');
-
-        // Ensure we're connected to the WebSocket before proceeding
-        // try {
-        //   await gameService.connectToWebSocket();
-        // } catch (wsError) {
-        //   console.error('Failed to connect to WebSocket server:', wsError);
-        //   throw new Error('Cannot connect to game server. Please make sure the server is running.');
-        // }
-
-        
         
         if (!currentUser?.id) {
           throw new Error('User not authenticated');
@@ -122,237 +114,268 @@ const  currentUser = useSelector((state: RootState) => state.user.currentUser); 
   // Get the current user
   const userName = currentUser?.username || currentUser?.email?.split('@')[0] || 'You';
   
-  // Show room created state
+  if (isLoading) {
+    return (
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+      }}>
+        <div style={{
+          backgroundColor: 'var(--bg-primary)',
+          padding: '2rem',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px var(--shadow-color)',
+          textAlign: 'center',
+          color: 'var(--text-secondary)',
+          minWidth: '300px',
+        }}>
+          <div style={{ marginBottom: '1rem' }}>Creating your room...</div>
+          <div style={{
+            width: '2rem',
+            height: '2rem',
+            margin: '0 auto',
+            border: '3px solid var(--primary)',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}></div>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem',
+      }}>
+        <div style={{
+          backgroundColor: 'var(--bg-primary)',
+          padding: '2rem',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 6px var(--shadow-color)',
+          textAlign: 'center',
+          minWidth: '300px',
+        }}>
+          <div style={{
+            color: 'var(--error-text)',
+            marginBottom: '1.5rem',
+          }}>
+            {error}
+          </div>
+          <button
+            onClick={handleRetry}
+            style={{
+              padding: '0.75rem 2rem',
+              backgroundColor: 'var(--primary)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '500',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 8px var(--shadow-color)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-light)' }}>
-      <header style={{ 
-        backgroundColor: 'white', 
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+    <div style={{
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem',
+    }}>
+      <div style={{
+        backgroundColor: 'var(--bg-primary)',
+        padding: '2.5rem',
+        borderRadius: '1rem',
+        boxShadow: '0 4px 6px var(--shadow-color)',
+        width: '100%',
+        maxWidth: '500px',
       }}>
-        <div style={{ 
-          maxWidth: '80rem', 
-          margin: '0 auto', 
-          padding: '1rem'
+        <h2 style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          marginBottom: '2rem',
+          textAlign: 'center',
+        }} className="gradient-text">
+          Room Created!
+        </h2>
+
+        <div style={{
+          backgroundColor: 'var(--info-bg)',
+          border: '1px solid var(--info-border)',
+          padding: '1.5rem',
+          borderRadius: '0.75rem',
+          marginBottom: '2rem',
         }}>
-          <h1 className="gradient-text" style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold' 
-          }}>HECTOCLASH</h1>
-        </div>
-      </header>
-      
-      <main style={{ 
-        maxWidth: '80rem', 
-        margin: '0 auto', 
-        padding: '2rem 1rem'
-      }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-            Room Created!
-          </h2>
-          <p style={{ color: 'var(--text-light)' }}>
-            Share the room code with your opponent to start the game.
-          </p>
-        </div>
-        
-        <div style={{ 
-          backgroundColor: 'white', 
-          padding: '1.5rem', 
-          borderRadius: '0.5rem', 
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-          marginBottom: '2rem'
-        }}>
-          <h3 style={{ 
-            fontSize: '1.125rem', 
-            fontWeight: '600', 
-            marginBottom: '1rem'
-          }}>Room Information</h3>
-          
-          <div style={{ 
-            backgroundColor: 'var(--bg-light)', 
-            padding: '1rem', 
-            borderRadius: '0.5rem', 
-            border: '1px solid #e5e7eb',
-            marginBottom: '1.5rem'
+          <p style={{ 
+            color: 'var(--info-text)', 
+            margin: 0,
+            marginBottom: '1rem',
+            fontSize: '1.1rem',
+            fontWeight: '500'
           }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center'
+            Share this room code with your friends:
+          </p>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1rem',
+          }}>
+            <code style={{
+              flex: 1,
+              fontSize: '1.75rem',
+              fontWeight: 'bold',
+              color: 'var(--info-number)',
+              backgroundColor: 'var(--bg-primary)',
+              padding: '0.75rem 1rem',
+              borderRadius: '0.5rem',
+              textAlign: 'center',
+              letterSpacing: '0.1em',
+              border: '1px solid var(--info-border)',
             }}>
-              <div>
-                <p style={{ 
-                  fontSize: '0.875rem', 
-                  color: 'var(--text-light)', 
-                  marginBottom: '0.25rem'
-                }}>Room Code:</p>
-                <p style={{ 
-                  fontSize: '1.875rem', 
-                  fontFamily: 'monospace', 
-                  fontWeight: 'bold', 
-                  letterSpacing: '0.05em'
-                }}>{roomInfo?.id}</p>
-              </div>
-              <button
-                onClick={handleCopyRoomId}
-                style={{ 
-                  border: '1px solid var(--primary)',
-                  color: 'var(--primary)',
-                  backgroundColor: 'transparent',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.375rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {copied ? 'Copied!' : 'Copy Code'}
-              </button>
-            </div>
-          </div>
-          
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h4 style={{ 
-              fontSize: '1rem', 
-              fontWeight: '500', 
-              marginBottom: '0.5rem'
-            }}>Players ({roomInfo?.guest ? '2' : '1'}/2):</h4>
-            <ul style={{ 
-              backgroundColor: 'var(--bg-light)', 
-              borderRadius: '0.5rem', 
-              border: '1px solid #e5e7eb'
-            }}>
-              <li style={{ 
-                padding: '0.75rem', 
-                display: 'flex', 
-                alignItems: 'center',
-                borderBottom: '1px solid #e5e7eb'
-              }}>
-                <div style={{ 
-                  backgroundColor: 'var(--primary)', 
-                  color: 'white', 
-                  borderRadius: '9999px', 
-                  width: '2rem', 
-                  height: '2rem', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  marginRight: '0.75rem'
-                }}>
-                  {userName.charAt(0).toUpperCase()}
-                </div>
-                <span>{userName} <span style={{ color: 'var(--text-light)' }}>(You)</span></span>
-              </li>
-              
-              {roomInfo?.guest ? (
-                <li style={{ 
-                  padding: '0.75rem', 
-                  display: 'flex', 
-                  alignItems: 'center' 
-                }}>
-                  <div style={{ 
-                    backgroundColor: 'var(--secondary)', 
-                    color: 'white', 
-                    borderRadius: '9999px', 
-                    width: '2rem', 
-                    height: '2rem', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    marginRight: '0.75rem'
-                  }}>
-                    G
-                  </div>
-                  <span>Guest</span>
-                </li>
-              ) : (
-                <li style={{ 
-                  padding: '0.75rem', 
-                  color: 'var(--text-light)', 
-                  fontStyle: 'italic', 
-                  display: 'flex', 
-                  alignItems: 'center'
-                }}>
-                  <div style={{ 
-                    backgroundColor: '#e5e7eb', 
-                    borderRadius: '9999px', 
-                    width: '2rem', 
-                    height: '2rem', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    marginRight: '0.75rem'
-                  }}>
-                    ?
-                  </div>
-                  Waiting for opponent...
-                </li>
-              )}
-            </ul>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '1rem' }}>
+              {roomInfo?.id}
+            </code>
             <button
-              onClick={handleStartGame}
-              style={{ 
-                backgroundColor: 'var(--primary)',
-                color: 'white',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.375rem',
-                fontWeight: '500',
-                flex: '1',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              Enter Waiting Room
-            </button>
-            <button
-              onClick={() => navigate('/dashboard')}
+              onClick={handleCopyRoomId}
               style={{
-                border: '1px solid var(--secondary)',
-                color: 'var(--secondary)',
-                backgroundColor: 'transparent', 
                 padding: '0.75rem 1rem',
-                borderRadius: '0.375rem',
-                fontWeight: '500',
+                backgroundColor: copied ? 'var(--info-text)' : 'var(--bg-primary)',
+                color: copied ? 'white' : 'var(--text-primary)',
+                border: `1px solid ${copied ? 'var(--info-text)' : 'var(--border-color)'}`,
+                borderRadius: '0.5rem',
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s ease',
+                minWidth: '120px',
+                justifyContent: 'center',
+              }}
+              onMouseOver={(e) => {
+                if (!copied) {
+                  e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+                  e.currentTarget.style.borderColor = 'var(--hover-border)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!copied) {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-primary)';
+                  e.currentTarget.style.borderColor = 'var(--border-color)';
+                }
               }}
             >
-              Cancel
+              {copied ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="6" y="6" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M3.5 10V3C3.5 2.44772 3.94772 2 4.5 2H10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  Copy Code
+                </>
+              )}
             </button>
           </div>
+          <p style={{
+            color: 'var(--info-text)',
+            margin: 0,
+            fontSize: '0.9rem',
+          }}>
+            Waiting for opponent to join...
+          </p>
         </div>
-        
-        <div style={{ 
-          backgroundColor: '#ebf5ff', 
-          padding: '1rem', 
-          borderRadius: '0.5rem', 
-          border: '1px solid #bfdbfe'
+
+        <div style={{
+          display: 'flex',
+          gap: '1rem',
         }}>
-          <h3 style={{ fontWeight: '500', marginBottom: '0.5rem' }}>How it works:</h3>
-          <p style={{ 
-            fontSize: '0.875rem', 
-            color: 'var(--text)', 
-            marginBottom: '0.5rem'
-          }}>
-            1. Share the room code with your opponent.
-          </p>
-          <p style={{ 
-            fontSize: '0.875rem', 
-            color: 'var(--text)', 
-            marginBottom: '0.5rem'
-          }}>
-            2. Enter the waiting room and wait for your opponent to join.
-          </p>
-          <p style={{ 
-            fontSize: '0.875rem', 
-            color: 'var(--text)'
-          }}>
-            3. Once your opponent joins, the game will start automatically.
-          </p>
+          <button
+            onClick={handleStartGame}
+            style={{
+              flex: 1,
+              padding: '1rem',
+              backgroundColor: 'var(--primary)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '600',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 8px var(--shadow-color)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            Start Game
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              padding: '1rem',
+              backgroundColor: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '500',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--hover-bg)';
+              e.currentTarget.style.borderColor = 'var(--hover-border)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-primary)';
+              e.currentTarget.style.borderColor = 'var(--border-color)';
+            }}
+          >
+            Back to Dashboard
+          </button>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
