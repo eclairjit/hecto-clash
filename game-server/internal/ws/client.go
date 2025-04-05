@@ -28,6 +28,7 @@ const (
 	MESSAGE_TYPE_ERROR   			MessageType = "error"
 	MESSAGE_TYPE_WRONG_SUBMISSION  	MessageType = "wrong_submission"
 	MESSAGE_TYPE_PUZZLE_ASSIGN 		MessageType = "puzzle_assign"
+	MESSAGE_TYPE_CORRECT_SUBMISSION  MessageType = "correct_submission"
 )
 
 type Message struct {

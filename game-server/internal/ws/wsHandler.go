@@ -148,11 +148,18 @@ func (h *Hub) handleSubmission(c *Client, msg Message) {
 
 			// Notify both users and end the game
 			for _, cl := range room.Clients {
+				if cl.ID == c.ID {
+					cl.Message <- &Message{
+						Type:    MESSAGE_TYPE_CORRECT_SUBMISSION,
+						Content: "Congratulations! You have submitted the correct answer.",
+						RoomID:  msg.RoomID,
+					}
+				} else {
 				cl.Message <- &Message{
 					Type:    MESSAGE_TYPE_END,
-					Content: "Game over! A user has submitted the correct answer.",
+					Content: "Game over! Your opponent has submitted the correct answer.",
 					RoomID:  msg.RoomID,
-				}
+				}}
 				close(cl.Message)
 			}
 			delete(h.Rooms, msg.RoomID)
