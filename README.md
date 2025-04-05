@@ -56,6 +56,7 @@ npm run dev
 
 ```bash
 cd game-server
+go mod -o ./bin/main.exe ./cmd/api
 ./cmd/main.exe
 ```
 
