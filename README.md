@@ -59,7 +59,7 @@ cd game-server
 ./cmd/main.exe
 ```
 
-> 📝 You may need PostgreSQL running locally or through Docker. Update environment variables as needed in the `.env` files.
+> 📝 You may need PostgreSQL and Redis running locally or through Docker. Update environment variables as needed in the `.env` files.
 
 ---
 
