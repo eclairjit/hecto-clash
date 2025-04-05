@@ -119,7 +119,7 @@ flowchart TD
     Start([User Enters App]) --> AuthCheck{Is User Authenticated?}
     AuthCheck -->|No| Auth0Login[Auth0 Login/Signup Flow]
     Auth0Login --> AuthCallback[Auth0 Callback Processing]
-    AuthCallback --> SessionStorage[Store Auth Token in Session]
+    AuthCallback --> SessionStorage[Store Auth Token]
     AuthCheck -->|Yes| Dashboard[Dashboard Page]
     SessionStorage --> Dashboard
 
@@ -159,40 +159,6 @@ flowchart TD
     Leaderboard --> QueryDB[Query Database for Rankings]
     QueryDB --> ViewStats[View Rankings and Stats]
     ViewStats --> Dashboard
-
-    subgraph Authentication
-        AuthCheck
-        Auth0Login
-        AuthCallback
-        SessionStorage
-    end
-
-    subgraph Room Management
-        CreateRoom
-        WebSocketInit
-        RoomCreated
-        WaitingForOpponent
-        JoinRoom
-        EnterCode
-        WebSocketConnect
-        JoinedRoom
-        OpponentJoined
-    end
-
-    subgraph Game Flow
-        GameStart
-        GamePlay
-        ServerManagement
-        GameEnd
-        DatabaseUpdate
-        NotifyPlayers
-    end
-
-    subgraph Backend
-        ServerManagement
-        DatabaseUpdate
-        QueryDB
-    end
 ```
 
 ## 🌐 Links
