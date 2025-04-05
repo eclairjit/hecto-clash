@@ -1,6 +1,6 @@
 # Hecto-Clash
 
-**Hecto-Clash** is a real-time, multiplayer game platform designed with a modular architecture. It includes separate services for core logic, game state management, and frontend rendering. The platform leverages **Go** for high-performance backend operations and **JavaScript/TypeScript** for a modern, reactive frontend.
+**Hecto-Clash** is a real-time, multiplayer game platform designed with a modular architecture. It includes separate services for core logic, game state management, and frontend rendering. The platform leverages **Go** for high-performance backend operations and **JavaScript/TypeScript** for a modern, reactive frontend along with the core-server backend.
 
 ---
 
