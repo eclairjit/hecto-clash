@@ -112,6 +112,89 @@ This project is licensed under the [MIT License](LICENSE). -->
 
 ---
 
+## Flow Diagram
+
+```mermaid
+flowchart TD
+    Start([User Enters App]) --> AuthCheck{Is User Authenticated?}
+    AuthCheck -->|No| Auth0Login[Auth0 Login/Signup Flow]
+    Auth0Login --> AuthCallback[Auth0 Callback Processing]
+    AuthCallback --> SessionStorage[Store Auth Token in Session]
+    AuthCheck -->|Yes| Dashboard[Dashboard Page]
+    SessionStorage --> Dashboard
+
+    Dashboard --> Choice{User Choice}
+    Choice -->|Create Room| CreateRoom[Create New Room]
+    Choice -->|Join Room| JoinRoom[Join Existing Room]
+    Choice -->|View Stats| Leaderboard[Leaderboard Page]
+
+    CreateRoom --> WebSocketInit[Initialize WebSocket Connection to Server]
+    WebSocketInit --> RoomCreated[Server Creates Room with Unique Code]
+    RoomCreated --> WaitingForOpponent[Waiting for Opponent]
+
+    JoinRoom --> EnterCode[Enter Room Code]
+    EnterCode --> WebSocketConnect[Connect to Room via WebSocket]
+    WebSocketConnect --> JoinedRoom[Joined Room]
+
+    WaitingForOpponent --> OpponentJoined{Opponent Joined?}
+    OpponentJoined -->|No| WaitingForOpponent
+    OpponentJoined -->|Yes| GameStart[Game Start]
+    JoinedRoom --> GameStart
+
+    GameStart --> GamePlay[HectoClash Gameplay]
+    GamePlay -->|Game Events| ServerManagement[Go Server Game Management]
+    ServerManagement -->|Game Updates| GamePlay
+
+    ServerManagement --> GameEnd{Game Ended?}
+    GameEnd -->|No| ServerManagement
+    GameEnd -->|Yes| DatabaseUpdate[Update Match Results in Database]
+
+    DatabaseUpdate --> NotifyPlayers[Notify Players of Game Results]
+    NotifyPlayers --> PostGameOptions{Post-Game Options}
+
+    PostGameOptions -->|Play Again| Choice
+    PostGameOptions -->|View Leaderboard| Leaderboard
+    PostGameOptions -->|Exit| Dashboard
+
+    Leaderboard --> QueryDB[Query Database for Rankings]
+    QueryDB --> ViewStats[View Rankings and Stats]
+    ViewStats --> Dashboard
+
+    subgraph Authentication
+        AuthCheck
+        Auth0Login
+        AuthCallback
+        SessionStorage
+    end
+
+    subgraph Room Management
+        CreateRoom
+        WebSocketInit
+        RoomCreated
+        WaitingForOpponent
+        JoinRoom
+        EnterCode
+        WebSocketConnect
+        JoinedRoom
+        OpponentJoined
+    end
+
+    subgraph Game Flow
+        GameStart
+        GamePlay
+        ServerManagement
+        GameEnd
+        DatabaseUpdate
+        NotifyPlayers
+    end
+
+    subgraph Backend
+        ServerManagement
+        DatabaseUpdate
+        QueryDB
+    end
+```
+
 ## 🌐 Links
 
 - GitHub: [https://github.com/eclairjit/hecto-clash](https://github.com/eclairjit/hecto-clash)
