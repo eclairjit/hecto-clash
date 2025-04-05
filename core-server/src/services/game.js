@@ -17,7 +17,7 @@ const generateNumericCodes = () => {
 const availableRoomCodes = generateNumericCodes();
 const usedRoomCodes = new Set();
 
-const createGameWithRoomId = async (roomId) => {
+const createGameWithRoomId = async (userId) => {
 	try {
 		if (availableRoomCodes.size === 0) {
 			throw new Error("No available room codes");

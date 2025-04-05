@@ -22,6 +22,7 @@ export const generateToken = (payload) => {
  * @returns {Object|false} Decoded token or false if invalid
  */
 export const verifyToken = (token) => {
+	console.log("Verifying token:", token);
 	return jwt.verify(token, process.env.JWT_SECRET);
 };
 

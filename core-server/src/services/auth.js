@@ -24,7 +24,7 @@ const loginOrSignUpUser = async (email, username, profilePic) => {
 			}
 
 			return {
-				user: existingUser,
+				...existingUser,
 				token,
 			};
 		}
@@ -42,7 +42,7 @@ const loginOrSignUpUser = async (email, username, profilePic) => {
 		console.log("Token stored successfully:", result);
 
 		return {
-			user: newUser,
+			... newUser,
 			token,
 		};
 	} catch (error) {

@@ -16,7 +16,7 @@ api.interceptors.request.use(
     // Get current state
     const state = store.getState();
     const token = state.user?.currentUser?.token;
-    
+    console.log('Current token:', token);
     // If token exists, add it to headers
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;

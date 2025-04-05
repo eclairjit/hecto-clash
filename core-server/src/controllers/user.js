@@ -15,29 +15,29 @@ const options = {
  */
 
 const Login = asyncHandler(async (req, res) => {
-	const { email, username, profilePic } = req.body;
+	const { email, username, profile_pic } = req.body;
 
 	if (!email || !username) {
 		throw new apiError(400, "Email and Username are required");
 	}
 
-	const { user, token } = await loginOrSignUpUser(
+	const user = await loginOrSignUpUser(
 		email,
 		username,
-		profilePic || defaultProfilePic
+		profile_pic || defaultProfilePic
 	);
-
+	console.log("User:", user);
 	if (!user) {
 		throw new apiError(400, "Error logging in or signing up");
 	}
 
-	if (!token) {
+	if (!user.token) {
 		throw new apiError(400, "Error generating token");
 	}
 
 	return res
 		.status(200)
-		.cookie("token", token, options)
+		.cookie("token", user.token, options)
 		.json(new apiResponse(200, "User logged in successfully.", user));
 });
 

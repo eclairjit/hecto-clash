@@ -8,8 +8,8 @@ import { createGameWithRoomId, releaseRoomId } from "../services/game.js";
  */
 
 const Create = asyncHandler(async (req, res) => {
-	const userId = req.user.id;
-
+	const userId = req.body.id;
+	console.log("User ID:", userId);
 	const result = await createGameWithRoomId(userId);
 
 	if (!result) {
@@ -18,7 +18,7 @@ const Create = asyncHandler(async (req, res) => {
 
 	return res
 		.status(201)
-		.json(apiResponse(200, "Game created successfully", result));
+		.json(new apiResponse(200, "Game created successfully", result));
 });
 
 const Game = {

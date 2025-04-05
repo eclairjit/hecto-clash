@@ -5,7 +5,8 @@ interface User {
   id: number|null; 
   username: string | null;
   email: string;
-  googlePhotoUrl?: string; // Optional photo URL
+  profile_pic?: string; 
+  current_rating:number;// Optional photo URL
   token:string; // JWT token
   // Add other relevant user properties from your backend response
 }

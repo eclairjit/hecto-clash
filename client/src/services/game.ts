@@ -50,7 +50,8 @@ class GameService {
   // Create a new game room
   async createRoom(id:number): Promise<string> {
     try {
-      const response = await api.post('/rooms/',{"id":id});
+      console.log('Creating user with ID:', id);
+      const response = await api.post('/game/',{id,});
 
       return response.data.roomId;
     } catch (error) {

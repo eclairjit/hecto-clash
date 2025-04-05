@@ -94,12 +94,12 @@ const storeToken = async (id, token) => {
 			throw new Error(`Couldn't connect to the database.`);
 		}
 
-		const result = await conn.query(
+		 await conn.query(
 			"UPDATE users SET token = ($1) WHERE id = ($2)",
 			[token, id]
 		);
 
-		return result.rows[0];
+		return true;
 	} catch (err) {
 		console.error("Error storing token:", err);
 		return null;

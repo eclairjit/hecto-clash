@@ -45,6 +45,7 @@ const authorize = asyncHandler(async (req, _, next) => {
 		const token =
 			req.cookies?.token || req.header("Authorization")?.replace("Bearer ", "");
 
+			console.log("Token:", token);
 		if (!token) {
 			throw new apiError(401, "No token found!");
 		}

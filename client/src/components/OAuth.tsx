@@ -30,7 +30,11 @@ export default function OAuth() {
       console.log("Backend response:", response.data);
 
       // Dispatch success action and navigate to the dashboard page
-      dispatch(signInSuccess(response.data));
+      console.log("User data:", response.data.message);
+      const {created_at,...rest} = response.data.message;
+      dispatch(signInSuccess({...rest}));
+      console.log("Redux state updated:", {...rest});
+
       console.log("user:", user);
       navigate("/dashboard");
     } catch (error) {
