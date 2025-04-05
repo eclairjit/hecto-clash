@@ -3,21 +3,23 @@ package ws
 import (
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 
+	"github.com/eclairjit/hecto-clash-hf/game-server/internal/store"
 	"github.com/eclairjit/hecto-clash-hf/game-server/pkg/hectoc"
-	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 )
 
-type Handler struct {
-	hub *Hub
-}
+// type Handler struct {
+// 	hub *Hub
+// }
 
-func NewHandler(h *Hub) *Handler {
-	return &Handler{
-		hub: h,
-	}
-}
+// func NewHandler(h *Hub) *Handler {
+// 	return &Handler{
+// 		hub: h,
+// 	}
+// }
 
 type CreateRoomReq struct {
 	ID   string `json:"id"`
@@ -31,41 +33,119 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (h *Handler) JoinRoom(w http.ResponseWriter, r *http.Request) {
-    // Parse the room ID from the URL
-    roomID := chi.URLParam(r, "roomId")
+func Upgrade(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
+	return upgrader.Upgrade(w, r, nil)
+}
 
-    clientID := r.URL.Query().Get("userId")
-
-    // Upgrade the connection to WebSocket
-    conn, err := upgrader.Upgrade(w, r, nil)
+// func (h *Handler) JoinRoom(w http.ResponseWriter, r *http.Request, clientID string, roomID string)  {
+//     // Upgrade the connection to WebSocket
+//     conn, err := upgrader.Upgrade(w, r, nil)
 	
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
+//     if err != nil {
+//         http.Error(w, err.Error(), http.StatusBadRequest)
+//         return
+//     }
+
+//     // Create a new client
+//     cl := &Client{
+//         Conn:     conn,
+//         Message:  make(chan *Message, 10),
+//         ID:       clientID,
+//         RoomID:   roomID,
+//     }
+
+//     // Register the client with the hub
+//     h.hub.Register <- cl
+
+//     // Start handling WebSocket messages
+//     go cl.writeMessage()
+//     cl.readMessage(h.hub)
+// }
+
+func isNumber(char string) bool {
+    return regexp.MustCompile(`\d`).MatchString(char)
+}
+
+func countNumbers(sequence string) int {
+    count := 0
+    for _, char := range sequence {
+        if isNumber(string(char)) {
+            count++
+        }
+    }
+    return count
+}
+
+func validateSequence(hectocSeq, submittedSeq string) bool {
+    // Ensure the submitted sequence contains exactly the same number of numeric characters as the Hectoc sequence.
+    if countNumbers(submittedSeq) != len(hectocSeq) {
+        return false
     }
 
-    // Create a new client
-    cl := &Client{
-        Conn:     conn,
-        Message:  make(chan *Message, 10),
-        ID:       clientID,
-        RoomID:   roomID,
+    
+    i, j := 0, 0
+
+    for i < len(hectocSeq) && j < len(submittedSeq) {
+        if isNumber(string(hectocSeq[i])) {
+            if isNumber(string(submittedSeq[j])) {
+                
+                if hectocSeq[i] != submittedSeq[j] {
+                    return false
+                }
+                i++
+                j++
+            } else {
+                
+                j++
+            }
+        } else {
+            
+            i++
+        }
     }
 
-    // Register the client with the hub
-    h.hub.Register <- cl
-
-    // Start handling WebSocket messages
-    go cl.writeMessage()
-    cl.readMessage(h.hub)
+    return i == len(hectocSeq)
 }
 
 func (h *Hub) handleSubmission(c *Client, msg Message) {
 	if room, ok := h.Rooms[msg.RoomID]; ok {
+		hectocSeq := room.Puzzle.Problem
+		submittedSeq := msg.Content.(string)
+
+		if !validateSequence(hectocSeq, submittedSeq) {
+			c.Message <- &Message{
+				Type:    MESSAGE_TYPE_WRONG_SUBMISSION,
+				Content: "Invalid submission format. Please ensure your submission matches the Hectoc sequence.",
+				RoomID:  msg.RoomID,
+			}
+			return
+		}
+
+		playerID, err := strconv.ParseInt(c.ID, 10, 64)
+
+		if err != nil {
+			c.Message <- &Message{
+				Type:    MESSAGE_TYPE_ERROR,
+				Content: "Invalid player ID.",
+				RoomID:  msg.RoomID,
+			}
+			return
+		}
+
+		submission := &store.SubmissionStruct{
+			PlayerID:   playerID,
+			Submission: submittedSeq,
+		}
+
 		verified, err := hectoc.Verify(msg.Content.(string))
 
 		if verified {
+			submission.IsCorrect = true
+
+			if h.OnSubmission != nil {
+				h.OnSubmission(msg.RoomID, submission)
+			}
+
 			// Notify both users and end the game
 			for _, cl := range room.Clients {
 				cl.Message <- &Message{
@@ -84,6 +164,12 @@ func (h *Hub) handleSubmission(c *Client, msg Message) {
 				RoomID: msg.RoomID,
 			}
 		} else {
+			submission.IsCorrect = false
+			
+			if h.OnSubmission != nil {
+				h.OnSubmission(msg.RoomID, submission)
+			}
+
 			// Notify only the submitting user
 			c.Message <- &Message{
 				Type:    MESSAGE_TYPE_WRONG_SUBMISSION,

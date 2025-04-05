@@ -32,12 +32,12 @@ const (
 
 type Message struct {
 	Type      MessageType `json:"type"`
-	Content   interface{} `json:"content"`
+	Content   any `json:"content"`
 	RoomID    string      `json:"roomId"`
 	SenderID  string      `json:"senderId"`
 }
 
-func (c *Client) writeMessage() {
+func (c *Client) WriteMessage() {
 	defer func() {
 		c.Conn.Close()
 	}()
@@ -52,7 +52,7 @@ func (c *Client) writeMessage() {
 	}
 }
 
-func (c *Client) readMessage(hub *Hub) {
+func (c *Client) ReadMessage(hub *Hub) {
 	defer func() {
 		hub.Unregister <- c
 		c.Conn.Close()

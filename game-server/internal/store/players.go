@@ -1,20 +1,37 @@
 package store
 
 import (
-	"sync"
-
-	"github.com/gorilla/websocket"
+	"context"
+	"database/sql"
 )
 
-type Player struct {
-	ID 			int64 			`json:"id"`
-	Conn 		*websocket.Conn `json:"-"`
-	GameID 		string 			`json:"game_id"`
-	Username 	string 			`json:"username"`
-	mu 			sync.Mutex 		`json:"-"`
+type PlayerStore struct {
+	db *sql.DB
 }
 
-var (
-	Players = make(map[string]*Player)
-	PlayersMu sync.RWMutex
-)
+type Player struct {
+	GameID int64 `json:"game_id"`
+	PlayerID int64 `json:"player_id"`
+	CreatedAt string `json:"created_at"`
+}
+
+func (s *PlayerStore) Create(ctx context.Context, player *Player) error {
+	query := `
+		INSERT INTO players (game_id, player_id)
+		VALUES ($1, $2)
+		RETURNING created_at;
+	`
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		player.GameID,
+		player.PlayerID,
+	).Scan(&player.CreatedAt)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

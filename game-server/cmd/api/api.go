@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/eclairjit/hecto-clash-hf/game-server/internal/store"
+	"github.com/eclairjit/hecto-clash-hf/game-server/internal/store/cache"
 	"github.com/eclairjit/hecto-clash-hf/game-server/internal/ws"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,14 +22,25 @@ type dbConfig struct {
 	maxIdleTime 	string
 }
 
-type config struct {
+type redisConfig struct {
 	addr 	string
-	db 		dbConfig
-	env 	string
+	pw 		string
+	db 		int
+	enabled bool
+}
+
+type config struct {
+	addr 		string
+	db 			dbConfig
+	env 		string
+	redisCfg 	redisConfig
 }
 
 type application struct {
-	config 	config
+	config 			config
+	cacheStorage 	cache.Storage
+	hub 			*ws.Hub
+	store 			store.Storage
 }
 
 func (app *application) mount() http.Handler {
@@ -50,15 +63,10 @@ func (app *application) mount() http.Handler {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	  }))
 
-	hub := ws.NewHub()
-	go hub.Run()
-
-	handler := ws.NewHandler(hub)
-
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
 
-		r.Get("/ws/rooms/{roomId}/join", handler.JoinRoom)
+		r.Get("/ws/rooms/{roomId}/join", app.joinRoomHandler)
 	})
 
 	return r
