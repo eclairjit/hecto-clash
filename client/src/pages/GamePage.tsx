@@ -1,343 +1,242 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import gameService, { Room } from '../services/game';
-import authService from '../services/auth';
-
-interface TimerProps {
-  timeLeft: number;
-  totalTime: number;
-}
-
-interface GameState {
-  roomId: string;
-  creator:string;
-  guest:string;
-  puzzle: string;
-  status: 'ready'|'waiting' | 'playing' | 'finished';
-  winner: string | null;
-}
-
-const Timer: React.FC<TimerProps> = ({ timeLeft, totalTime }) => {
-  
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-  
-  return (
-    <div className="timer-container">
-      {formatTime(timeLeft)}
-    </div>
-  );
-};
 
 const GamePage: React.FC = () => {
   const navigate = useNavigate();
-  const { roomId = '' } = useParams<{ roomId: string }>();
-  const [gameState, setGameState] = useState<GameState>({
-    roomId,
-    creator: '',
-    guest: '',
-    puzzle: '',
-    status: 'waiting',
-    winner: null
-  });
-  const [solution, setSolution] = useState('');
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Check if user is logged in and connect to the room
-  useEffect(() => {
-   
-    
-    // Initialize game and connect to the room
-    const initGame = async () => {
-      try {
-        // Connect to WebSocket
-        await gameService.connectToWebSocket();
-        
-        // Get room details
-        const room = await gameService.getRoom(roomId);
-        
-        // Set initial game state
-        setGameState({
-          roomId,
-          creator: room.creator,
-          guest: room.guest,
-          puzzle: room.puzzle || '',
-          status: room.status,
-          winner: room.winner || null
-        });
-        
-        // Set up listeners for game events
-        gameService.onRoomUpdate((updatedRoom) => {
-          setGameState(prev => ({
-            ...prev,
-            creator: updatedRoom.creator,
-            guest: updatedRoom.guest,
-            status: updatedRoom.status,
-            winner: updatedRoom.winner || null,
-            puzzle: updatedRoom.puzzle || prev.puzzle
-          }));
-        });
-        
-        gameService.onGameStart((data) => {
-          setGameState(prev => ({
-            ...prev,
-            status: 'playing',
-            puzzle: data.puzzle
-          }));
-          
-          // Start timer
-          setTimeLeft(data.timeLimit || 180);
-        });
-        
-        gameService.onGameEnd((data) => {
-          setGameState(prev => ({
-            ...prev,
-            status: 'finished',
-            winner: data.winner
-          }));
-        });
-      } catch (error) {
-        console.error('Failed to initialize game', error);
-        setError('Failed to connect to game. Please try again.');
-      }
-    };
-    
-    initGame();
-    
-    // Simulating an opponent joining after 5 seconds
-    if (gameState.creator !== '' && gameState.guest === '') {
-      const opponentTimer = setTimeout(() => {
-        setGameState(prev => {
-          if (prev.creator !== '' && prev.guest === '') {
-            return {
-              ...prev,
-              status: 'playing',
-              puzzle: '923754' // Sample puzzle
-            };
-          }
-          return prev;
-        });
-      }, 5000);
-      
-      return () => clearTimeout(opponentTimer);
-    }
-    
-    // Clean up
-    return () => {
-      gameService.leaveRoom(roomId);
-      // gameService.cleanUp();
-    };
-  }, [roomId, navigate]);
+  const { roomId } = useParams<{ roomId: string }>();
   
-  // Start timer when game is in progress
+  const GAME_TIME = 120; // 2 minutes in seconds
+  const OPERATORS = ['+', '-', '*', '/', '^', '(', ')'];
+  
+  // Initialize game state
+  const [sequence, setSequence] = useState(() => {
+    return Array(6).fill(0).map(() => Math.floor(Math.random() * 10).toString());
+  });
+  
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [timer, setTimer] = useState(GAME_TIME);
+  const [gameOver, setGameOver] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [expression, setExpression] = useState(Array(11).fill(''));
+  
+  // Timer effect
   useEffect(() => {
-    if (gameState.status === 'playing') {
-      const interval = setInterval(() => {
-        setTimeLeft(prev => {
+    if (timer > 0 && !gameOver) {
+      const timerId = setTimeout(() => {
+        setTimer(prev => {
           if (prev <= 1) {
-            clearInterval(interval);
-            // Game over due to time
-            setGameState(prev => ({
-              ...prev,
-              status: 'finished',
-              winner: 'opponent' // Time ran out for the player
-            }));
+            setGameOver(true);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
       
-      return () => clearInterval(interval);
+      return () => clearTimeout(timerId);
     }
-  }, [gameState.status]);
+  }, [timer, gameOver]);
   
-  const handleSolutionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSolution(e.target.value);
-    setError('');
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!solution.trim()) {
-      setError('Solution cannot be empty');
-      return;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      setError('');
-      
-      // Submit solution
-      const correct = await gameService.submitSolution(roomId, solution);
-      
-      if (correct) {
-        // Update game state to show player as winner
-        setGameState(prev => ({
-          ...prev,
-          status: 'finished',
-          winner: 'player'
-        }));
+  // Move cursor left
+  const moveCursorLeft = () => {
+    if (cursorPosition > 0) {
+      // Skip even positions (digits) and go directly to operator positions
+      if (cursorPosition % 2 === 0 && cursorPosition > 1) {
+        setCursorPosition(prev => prev - 2);
+      } else if (cursorPosition === 1) {
+        setCursorPosition(0);
       } else {
-        setError('Incorrect solution. Try again!');
+        setCursorPosition(prev => prev - 2);
       }
-    } catch (error) {
-      setError('Failed to submit solution. Please try again.');
-      console.error('Submit error:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
   
-  const renderGameContent = () => {
-    if (gameState.status === 'waiting') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full">
-          <h2 className="text-2xl font-bold mb-4">Waiting for opponent...</h2>
-          <div className="animate-pulse bg-blue-50 p-6 rounded-lg max-w-md text-center border border-blue-200">
-            <p className="mb-2">Room Code: <span className="font-mono font-bold">{gameState.roomId}</span></p>
-            <p className="text-gray-600">Share this code with your opponent to start the game.</p>
-          </div>
-        </div>
-      );
+  // Move cursor right
+  const moveCursorRight = () => {
+    if (cursorPosition < 10) {
+      // Skip digit positions and go directly to operator positions
+      if (cursorPosition % 2 === 0 && cursorPosition < 10) {
+        setCursorPosition(prev => prev + 1);
+      } else if (cursorPosition === 9) {
+        setCursorPosition(10);
+      } else {
+        setCursorPosition(prev => prev + 2);
+      }
     }
-    
-    if (gameState.status === 'finished') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full">
-          <h2 className="text-3xl font-bold mb-6">
-            {gameState.winner === 'player' 
-              ? 'Victory! 🏆' 
-              : 'Defeat... 😢'}
-          </h2>
-          <div className={`p-6 rounded-lg max-w-md text-center ${
-            gameState.winner === 'player' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-          }`}>
-            <p className="mb-4">
-              {gameState.winner === 'player'
-                ? 'Congratulations! You solved the puzzle correctly and won the match!'
-                : 'Your opponent solved the puzzle first. Better luck next time!'}
-            </p>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="btn btn-primary"
-            >
-              Back to Dashboard
-            </button>
-          </div>
-        </div>
-      );
+  };
+  
+  // Place an operator at cursor position
+  const placeOperator = (operator: string) => {
+    // Only odd positions can have operators (between digits)
+    if (cursorPosition % 2 === 1) {
+      const newExpression = [...expression];
+      newExpression[cursorPosition] = operator;
+      setExpression(newExpression);
     }
-    
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-        {/* Problem panel */}
-        <div className="problem-panel">
-          <h3 className="text-xl font-bold mb-4">Problem</h3>
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <p className="mb-2">Using the 6 digits below:</p>
-            <div className="text-4xl font-mono font-bold tracking-widest mb-4 text-center">
-              {gameState.puzzle.split('').join(' ')}
-            </div>
-            <p className="text-gray-700">
-              Create an expression that equals exactly 100 using all digits and the operations +, -, *, /, and ().
-              Each digit must be used exactly once, and you can't combine digits (like using "12" instead of "1" and "2").
-            </p>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>Example: 1+2*3-4+5*6</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Solution panel */}
-        <div className="solution-panel">
-          <h3 className="text-xl font-bold mb-4">Your Solution</h3>
-          <form onSubmit={handleSubmit} className="h-full flex flex-col">
-            <div className="flex-grow">
-              <input
-                type="text"
-                value={solution}
-                onChange={handleSolutionChange}
-                className="w-full p-4 text-lg font-mono border rounded-md bg-white text-gray-800 focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Enter your solution..."
-                autoFocus
-              />
-              
-              {error && (
-                <div className="mt-2 text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                  {error}
-                </div>
-              )}
-              
-              <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h4 className="font-bold mb-2">Allowed Operations:</h4>
-                <div className="grid grid-cols-5 gap-2">
-                  <div className="bg-white p-2 rounded text-center font-bold border">+</div>
-                  <div className="bg-white p-2 rounded text-center font-bold border">-</div>
-                  <div className="bg-white p-2 rounded text-center font-bold border">*</div>
-                  <div className="bg-white p-2 rounded text-center font-bold border">/</div>
-                  <div className="bg-white p-2 rounded text-center font-bold border">()</div>
-                </div>
-              </div>
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-4 w-full btn btn-primary"
-            >
-              {isSubmitting ? 'Checking...' : 'Submit Solution'}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
+  };
+  
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Evaluate the expression
+  const evaluateExpression = () => {
+    try {
+      // Build the expression string
+      let expressionStr = '';
+      for (let i = 0; i < expression.length; i++) {
+        if (i % 2 === 0) {
+          // Even indices are digits from the sequence
+          expressionStr += sequence[i / 2];
+        } else {
+          // Odd indices are operators placed by the player
+          expressionStr += expression[i] || '';
+        }
+      }
+      
+      // Replace ^ with ** for JavaScript's exponentiation
+      expressionStr = expressionStr.replace(/\^/g, '**');
+      
+      // Evaluate and check if equals 100
+      const result = eval(expressionStr);
+      return result === 100;
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  // Handle submission
+  const handleSubmit = () => {
+    const result = evaluateExpression();
+    setSuccess(result);
+    setGameOver(true);
+  };
+  
+  // Start a new game
+  const startNewGame = () => {
+    setSequence(Array(6).fill(0).map(() => Math.floor(Math.random() * 10).toString()));
+    setCursorPosition(0);
+    setTimer(GAME_TIME);
+    setGameOver(false);
+    setSuccess(false);
+    setExpression(Array(11).fill(''));
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header with timer */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold gradient-text">HECTOCLASH</h1>
-            <div className="text-sm text-gray-600">Room: <span className="font-mono">{gameState.roomId}</span></div>
+    <div className="w-full h-full bg-gray-900 text-white flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-green-400">HectoClash</h1>
+          <div className="bg-gray-700 px-4 py-2 rounded-md">
+            <span className={`font-mono text-xl ${timer < 30 ? 'text-red-500' : 'text-green-400'}`}>
+              {formatTime(timer)}
+            </span>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="text-sm text-gray-600">
-              {gameState.creator}   
+        </div>
+        
+        <div className="mb-8">
+          <p className="text-center text-lg mb-2 text-green-300">Make it 100!</p>
+          
+          {/* Sequence display */}
+          <div className="relative flex justify-center items-center my-6">
+            <div className="flex items-center space-x-2 text-5xl font-mono bg-gray-700 p-6 rounded-lg">
+              {sequence.map((digit, index) => {
+                const expressionIndex = index * 2;
+                const operatorIndex = expressionIndex + 1;
+                const showCursorBefore = cursorPosition === expressionIndex;
+                const showCursorAfter = cursorPosition === operatorIndex && index < 5;
+                
+                return (
+                  <React.Fragment key={index}>
+                    <div className="relative">
+                      {showCursorBefore && (
+                        <div className="absolute h-12 w-1 bg-yellow-400 animate-pulse -left-3"></div>
+                      )}
+                      <span className="text-yellow-300 font-bold">{digit}</span>
+                    </div>
+                    
+                    {index < 5 && (
+                      <div className="relative w-8 text-center">
+                        <span className="text-white">{expression[operatorIndex] || ' '}</span>
+                        {showCursorAfter && (
+                          <div className="absolute h-12 w-1 bg-yellow-400 animate-pulse left-4"></div>
+                        )}
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
-            {gameState.status === 'playing' && (
-              <Timer timeLeft={timeLeft} totalTime={180} />
-            )}
-            <button
-              onClick={() => {
-                if (confirm('Are you sure you want to leave this game?')) {
-                  navigate('/dashboard');
-                }
-              }}
-              className="btn btn-secondary-outline text-sm"
+          </div>
+          
+          {/* Arrow navigation */}
+          <div className="flex justify-center space-x-8 my-4">
+            <button 
+              onClick={moveCursorLeft}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-lg text-3xl"
+              disabled={gameOver}
             >
-              Leave Game
+              ←
+            </button>
+            <button 
+              onClick={moveCursorRight}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-lg text-3xl"
+              disabled={gameOver}
+            >
+              →
             </button>
           </div>
+          
+          {/* Operators */}
+          <div className="grid grid-cols-4 gap-3 mt-6">
+            {OPERATORS.map((op, index) => (
+              <button
+                key={index}
+                onClick={() => placeOperator(op)}
+                className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg text-2xl"
+                disabled={gameOver || cursorPosition % 2 === 0}
+              >
+                {op}
+              </button>
+            ))}
+          </div>
+          
+          {/* Game rules */}
+          <div className="bg-gray-700 p-3 rounded-lg mt-6 text-sm">
+            <h3 className="font-bold text-yellow-300 mb-1">Game Rules:</h3>
+            <p>Insert operators between the digits to make the expression equal to 100.</p>
+            <p>Use left/right arrows to move cursor and place symbols between digits.</p>
+          </div>
         </div>
-      </header>
-      
-      {/* Main game area */}
-      <main className="flex-grow p-4">
-        <div className="max-w-7xl mx-auto h-full py-6">
-          {renderGameContent()}
-        </div>
-      </main>
+        
+        {/* Submit button */}
+        {!gameOver ? (
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-4 rounded-lg text-xl"
+          >
+            Submit
+          </button>
+        ) : (
+          <div className="space-y-4">
+            <div className={`p-4 rounded-lg text-center ${success ? 'bg-green-800' : 'bg-red-800'}`}>
+              {success 
+                ? "Success! You made it equal to 100!" 
+                : "Not quite! Try again."}
+            </div>
+            <button
+              onClick={startNewGame}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-lg text-xl"
+            >
+              New Game
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-export default GamePage; 
+export default GamePage;

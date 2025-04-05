@@ -8,6 +8,7 @@ import DashboardPage from "./pages/DashboardPage.tsx";
 import CreateRoomPage from "./pages/CreateRoomPage.tsx";
 import JoinRoomPage from "./pages/JoinRoomPage.tsx";
 import GamePage from "./pages/GamePage.tsx";
+import LeaderboardPage from "./pages/LeaderboardPage.tsx";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./redux/store";
@@ -24,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
 						<Route path="create-room" element={<CreateRoomPage />} />
 						<Route path="join-room" element={<JoinRoomPage />} />
 						<Route path="game/:roomId" element={<GamePage />} />
+						<Route path="leaderboard" element={<LeaderboardPage />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

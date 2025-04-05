@@ -22,6 +22,10 @@ const DashboardPage: React.FC = () => {
     navigate('/join-room');
   };
 
+  const handleViewLeaderboard = () => {
+    navigate('/leaderboard');
+  };
+  
   // Render null or a loading indicator while checking auth state or if currentUser is null
   if (!currentUser) {
     return null; // Or a loading spinner
@@ -144,6 +148,53 @@ const DashboardPage: React.FC = () => {
               }}
             >
               Join Existing Room
+            </button>
+          </div>
+          
+          {/* Leaderboard Card */}
+          <div style={{ 
+            backgroundColor: 'var(--bg-primary)',
+            borderRadius: '0.5rem',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px var(--shadow-color)',
+            border: '1px solid var(--border-color)',
+            transition: 'all 0.3s'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = '0 10px 15px -3px var(--shadow-color)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = '0 1px 3px var(--shadow-color)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+          >
+            <h3 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold', 
+              color: 'var(--text-primary)', 
+              marginBottom: '0.75rem' 
+            }}>Leaderboard</h3>
+            <p style={{ 
+              color: 'var(--text-secondary)', 
+              marginBottom: '1.5rem' 
+            }}>
+              Check out the top players in HectoClash and see where you rank among the mathematical elite.
+            </p>
+            <button 
+              onClick={handleViewLeaderboard}
+              style={{ 
+                backgroundColor: 'var(--accent)',
+                color: 'white',
+                padding: '0.625rem 1.25rem',
+                borderRadius: '0.375rem',
+                fontWeight: '500',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+            >
+              View Leaderboard
             </button>
           </div>
         </div>
