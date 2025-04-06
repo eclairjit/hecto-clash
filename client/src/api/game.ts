@@ -40,11 +40,16 @@ type Message = {
 
 // This function creates a new WebSocket connection to the game server
 function create(roomId: string, userId: string): WebSocket {
-	const socket = new WebSocket(
-		`ws://localhost:${import.meta.env.GAME_SERVER_HOST}:${
-			import.meta.env.GANE_SERVER_PORT
-		}/rooms/${roomId}/join?userId=${userId}`
-	);
+	const url = `ws://${import.meta.env.VITE_GAME_SERVER_HOST}:${
+		import.meta.env.VITE_GAME_SERVER_PORT
+	}/api/v1/ws/rooms/${roomId}/join?userId=${userId}`;
+
+	/*
+	ws://localhost:8080/api/v1/ws/rooms/000001/join?userId=1
+	*/
+
+	console.log("WebSocketClient: create", url);
+	const socket = new WebSocket(url);
 
 	return socket;
 }

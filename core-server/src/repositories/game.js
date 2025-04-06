@@ -9,9 +9,9 @@ const createGame = async (roomId) => {
 		if (!conn) {
 			throw new Error("Couldn't connect to the database");
 		}
-         console.log()
+		console.log();
 		const result = await conn.query(
-			"INSERT INTO games (roomId) VALUES ($1) RETURNING id",
+			"INSERT INTO games (room_id) VALUES ($1) RETURNING id",
 			[roomId]
 		);
 
