@@ -43,7 +43,7 @@ function create(roomId: string, userId: string): WebSocket {
 	const socket = new WebSocket(
 		`ws://${import.meta.env.VITE_GAME_SERVER_HOST}:${
 			import.meta.env.VITE_GAME_SERVER_PORT
-		}/rooms/${roomId}/join?userId=${userId}`
+		}/api/v1/ws/rooms/${roomId}/join?userId=${userId}`
 	);
 
 	return socket;
@@ -67,7 +67,14 @@ class WebSocketClient {
 			this.uninitiate();
 		});
 
-		console.log("WebSocketClient: initiate");
+		this.socket.addEventListener("open", (e) => {
+			console.log("WebSocketClient: open", e);
+		});
+
+		this.socket.addEventListener("error", (e) => {
+			console.error("WebSocketClient: error", e);
+			toast.error("WebSocket error");
+		});
 	}
 
 	uninitiate() {
@@ -113,7 +120,7 @@ class WebSocketClient {
 			return;
 		}
 
-		this.socket.onmessage = (event) => {
+		this.socket.addEventListener("message", (event) => {
 			const message: Message = JSON.parse(event.data);
 
 			switch (message.type) {
@@ -150,7 +157,7 @@ class WebSocketClient {
 				default:
 					console.log("WebSocketClient: unknown message type", message);
 			}
-		};
+		});
 	}
 }
 

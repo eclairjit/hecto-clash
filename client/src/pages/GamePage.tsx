@@ -3,6 +3,7 @@ import WebSocketClient from "../api/game";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
+import { Toaster } from "sonner";
 
 const MathGame = () => {
 	const { roomId } = useParams<{ roomId: string }>();
@@ -168,6 +169,7 @@ const MathGame = () => {
 
 	return (
 		<div className="w-full h-full bg-gray-900 text-white flex flex-col items-center justify-center p-4">
+			<Toaster />
 			<div className="w-full max-w-lg bg-gray-800 rounded-lg shadow-lg p-6">
 				<div className="flex justify-between items-center mb-6">
 					<h1 className="text-2xl font-bold text-green-400">Math Game</h1>
