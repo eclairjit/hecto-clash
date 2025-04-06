@@ -18,6 +18,18 @@
 
 import app from "./app.js";
 import conf from "./config/config.js";
+import { isRedisAvailable } from "./config/redis.js";
+
+// Check if Redis is available - it's mandatory for the server to work
+setTimeout(() => {
+	if (!isRedisAvailable) {
+		console.error("ERROR: Redis connection not established. Server cannot function without Redis.");
+		console.error("Please ensure Redis is running on localhost:6379 or configure environment variables.");
+		process.exit(1);
+	} else {
+		console.log("Redis connection verified. Server is ready to use.");
+	}
+}, 5000); // Give Redis 5 seconds to connect
 
 const httpServer = app.listen(conf.port, () => {
 	console.log(`Server is listening on port ${conf.port}.`);
