@@ -146,6 +146,8 @@ func (h *Hub) handleSubmission(c *Client, msg Message) {
 				h.OnSubmission(msg.RoomID, submission)
 			}
 
+			var opponentID int64
+
 			// Notify both users and end the game
 			for _, cl := range room.Clients {
 				if cl.ID == c.ID {
@@ -155,12 +157,29 @@ func (h *Hub) handleSubmission(c *Client, msg Message) {
 						RoomID:  msg.RoomID,
 					}
 				} else {
-				cl.Message <- &Message{
-					Type:    MESSAGE_TYPE_END,
-					Content: "Game over! Your opponent has submitted the correct answer.",
-					RoomID:  msg.RoomID,
-				}}
+					opponentID, err = strconv.ParseInt(cl.ID, 10, 64)
+
+					if err != nil {
+						cl.Message <- &Message{
+							Type:    MESSAGE_TYPE_ERROR,
+							Content: "Invalid opponent ID.",
+							RoomID:  msg.RoomID,
+						}
+						continue
+					}
+
+					cl.Message <- &Message{
+						Type:    MESSAGE_TYPE_END,
+						Content: "Game over! Your opponent has submitted the correct answer.",
+						RoomID:  msg.RoomID,
+					}
+				}
+
 				close(cl.Message)
+
+				if h.OnEnding != nil {
+					h.OnEnding(msg.RoomID, playerID, opponentID)
+				}
 			}
 			delete(h.Rooms, msg.RoomID)
 		} else if err != nil {

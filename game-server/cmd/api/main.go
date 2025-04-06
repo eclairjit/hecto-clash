@@ -9,6 +9,7 @@ import (
 	"github.com/eclairjit/hecto-clash-hf/game-server/internal/store/cache"
 	"github.com/eclairjit/hecto-clash-hf/game-server/internal/ws"
 	"github.com/eclairjit/hecto-clash-hf/game-server/pkg/hectoc"
+	"github.com/eclairjit/hecto-clash-hf/game-server/pkg/rating"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/net/context"
@@ -81,6 +82,7 @@ func main() {
 			log.Printf("Deleted room %s from Redis\n", roomID)
 		}
 	}, 
+	
 	func(roomID string, puzzle *hectoc.Hectoc) {
 		ctx := context.Background()
 
@@ -100,6 +102,7 @@ func main() {
 			log.Printf("Set room %s in Redis\n", roomID)
 		}
 	},
+
 	func(roomID string, submission *store.SubmissionStruct) {
 		ctx := context.Background()
 
@@ -122,6 +125,53 @@ func main() {
 
 		log.Printf("Created submission for room %s\n", roomID)
 
+	},
+
+	func(roomID string, winnerID, loserID int64) {
+		ctx := context.Background()
+
+		gameID, err := app.cacheStorage.Games.Get(ctx, roomID)
+
+		if err == redis.Nil {
+			log.Printf("Room %s not found in Redis\n", roomID)
+			return
+		} else if err != nil {
+			log.Printf("Failed to get room %s from Redis: %v\n", roomID, err)
+			return
+		}
+
+		winnerRating, err := app.store.Ratings.GetRatingByID(ctx, winnerID)
+
+		if err != nil {
+			log.Printf("Failed to get winner rating for room %s: %v\n", roomID, err)
+			return
+		}
+
+		loserRating, err := app.store.Ratings.GetRatingByID(ctx, loserID)
+
+		if err != nil {
+			log.Printf("Failed to get loser rating for room %s: %v\n", roomID, err)
+			return
+		}
+
+		newWinnerRating, newLoserRating := rating.GetNewRatings(winnerID, loserID, winnerID, winnerRating, loserRating)
+
+		player1Rating := &store.Rating{
+			UserID: winnerID,
+			GameID: gameID,
+			RatingAfter: newWinnerRating,
+		}
+
+		player2Rating := &store.Rating{
+			UserID: loserID,
+			GameID: gameID,
+			RatingAfter: newLoserRating,
+		}
+
+		if err := app.store.Ratings.UpdateRatings(ctx, player1Rating, player2Rating); err != nil {
+			log.Printf("Failed to update winner rating for room %s: %v\n", roomID, err)
+			return
+		}
 	},
 	)
 

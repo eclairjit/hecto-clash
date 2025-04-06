@@ -25,6 +25,11 @@ type Storage struct {
 	Submissions interface {
 		Create(context.Context, *SubmissionStruct) error
 	}
+
+	Ratings interface {
+		UpdateRatings(context.Context, *Rating, *Rating) error
+		GetRatingByID(context.Context, int64) (int, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -32,5 +37,6 @@ func NewStorage(db *sql.DB) Storage {
 		Players: &PlayerStore{db},
 		Games: &GameStore{db},
 		Submissions: &SubmissionStore{db},
+		Ratings: &RatingStore{db},
 	}
 }

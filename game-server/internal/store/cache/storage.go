@@ -13,11 +13,19 @@ type Storage struct {
 		Set(context.Context, *store.Game) error
 		Delete(context.Context, string) error
 	} 
+
+	LeaderBoard interface {
+		Add(context.Context, int64, int) error
+	}
 }
 
 func NewRedisStorage(rdb *redis.Client) Storage {
 	return Storage {
 		Games: &GamesStore{
+			rdb: rdb,
+		},
+
+		LeaderBoard: &LeaderboardStore{
 			rdb: rdb,
 		},
 	}

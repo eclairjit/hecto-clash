@@ -19,9 +19,14 @@ type Hub struct {
     OnRoomEmpty func(roomID string)
     OnPuzzleCreated func(roomID string, puzzle *hectoc.Hectoc)
     OnSubmission func(roomID string, submission *store.SubmissionStruct)
+    OnEnding func(roomID string, winnerID int64, loserID int64)
 }
 
-func NewHub(onRoomEmpty func(roomID string), onPuzzleCreated func(roomID string, puzzle *hectoc.Hectoc), onSubmission func(roomID string, submission *store.SubmissionStruct)) *Hub {
+func NewHub(
+    onRoomEmpty func(roomID string),
+    onPuzzleCreated func(roomID string, puzzle *hectoc.Hectoc),
+    onSubmission func(roomID string, submission *store.SubmissionStruct),
+    onEnding func(roomID string, winnerID int64, loserID int64)) *Hub{
 	return &Hub{
 		Rooms:      make(map[string]*Room),
 		Register:   make(chan *Client),
@@ -30,6 +35,7 @@ func NewHub(onRoomEmpty func(roomID string), onPuzzleCreated func(roomID string,
         OnRoomEmpty: onRoomEmpty,
         OnPuzzleCreated: onPuzzleCreated,
         OnSubmission: onSubmission,
+        OnEnding: onEnding,
 	}
 }
 
