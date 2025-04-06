@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ThemeToggle from "../components/ThemeToggle";
 import { api } from "../utils/api";
-import WebSocketClient from "../api/game";
 
 interface RoomInfo {
 	id: string;
@@ -20,7 +19,6 @@ const CreateRoomPage: React.FC = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [copied, setCopied] = useState(false);
-	const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
 
 	const currentUser = useSelector((state: RootState) => state.user.currentUser);
 
@@ -37,6 +35,8 @@ const CreateRoomPage: React.FC = () => {
 				// Create room via API
 				const response = await api.post("/game/", { id: currentUser.id });
 				const roomId = response.data.message;
+
+				// alert("Room id: " + roomId);
 				console.log("Room created with ID:", roomId);
 
 				// Set room info
@@ -49,17 +49,6 @@ const CreateRoomPage: React.FC = () => {
 				});
 
 				// Create WebSocket client and initialize
-				const client = new WebSocketClient(roomId, currentUser.id.toString());
-
-				// Set error handler
-				// client.onerror = (error: Error) => {
-				//   console.error('WebSocket error occurred:', error);
-				//   setError(error.message || 'Failed to connect to game server. Please try again.');
-				// };
-
-				client.initiate();
-				client.startReceivingMessages();
-				setWsClient(client);
 			} catch (error) {
 				console.error("Failed to create room:", error);
 				if (error instanceof Error) {
@@ -75,11 +64,6 @@ const CreateRoomPage: React.FC = () => {
 		createRoom();
 
 		// Clean up WebSocket connection when unmounting
-		return () => {
-			if (wsClient) {
-				wsClient.uninitiate();
-			}
-		};
 	}, []);
 
 	const handleCopyRoomId = () => {
@@ -100,11 +84,11 @@ const CreateRoomPage: React.FC = () => {
 		if (roomInfo) {
 			// Close the current WebSocket before navigating to the game page
 			// The game page will create its own WebSocket connection
-			if (wsClient) {
-				// We don't want to fully close the connection as it will be reopened by the game page
-				// Just mark it as transitioning to the game page
-				console.log("Transitioning to game page...");
-			}
+			// if (wsClient) {
+			// 	// We don't want to fully close the connection as it will be reopened by the game page
+			// 	// Just mark it as transitioning to the game page
+			// 	console.log("Transitioning to game page...");
+			// }
 
 			navigate(`/game/${roomInfo.id}`);
 		}

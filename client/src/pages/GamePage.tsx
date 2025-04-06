@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import WebSocketClient from "../api/game";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 const MathGame = () => {
+	const { roomId } = useParams<{ roomId: string }>();
 	const GAME_TIME = 120; // 2 minutes in seconds
 	const OPERATORS = ["+", "-", "*", "/", "^", "(", ")"];
+
+	const currentUser = useSelector((state: RootState) => state.user.currentUser);
 
 	// Initialize game state
 	const [sequence, setSequence] = useState(() => {
@@ -16,10 +23,39 @@ const MathGame = () => {
 	const [gameOver, setGameOver] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [currentDigitIndex, setCurrentDigitIndex] = useState(0); // Track which digit should be selected next
+	const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
+	const [start, setStart] = useState<boolean>(false);
+
+	useEffect(() => {
+		let client: WebSocketClient | null = null;
+		if (roomId && currentUser?.id) {
+			client = new WebSocketClient(roomId, currentUser.id.toString());
+			console.log("WebSocketClient initialized:", client);
+		}
+
+		// Set error handler
+		// client.onError = (error: Error) => {
+		// 	console.error("WebSocket error occurred:", error);
+		// 	setError(
+		// 		error.message ||
+		// 			"Failed to connect to game server. Please try again."
+		// 	);
+		// };
+
+		client?.initiate();
+		client?.startReceivingMessages();
+		setWsClient(client);
+
+		return () => {
+			if (wsClient) {
+				wsClient.uninitiate();
+			}
+		};
+	}, []);
 
 	// Timer effect
 	useEffect(() => {
-		if (timer > 0 && !gameOver) {
+		if (timer > 0 && !gameOver && start) {
 			const timerId = setTimeout(() => {
 				setTimer((prev) => {
 					if (prev <= 1) {
@@ -32,7 +68,7 @@ const MathGame = () => {
 
 			return () => clearTimeout(timerId);
 		}
-	}, [timer, gameOver]);
+	}, [timer, gameOver, start]);
 
 	// Add the next digit from the sequence to the expression
 	const addNextDigit = () => {
