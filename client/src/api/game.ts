@@ -41,8 +41,8 @@ type Message = {
 // This function creates a new WebSocket connection to the game server
 function create(roomId: string, userId: string): WebSocket {
 	const socket = new WebSocket(
-		`ws://localhost:${import.meta.env.GAME_SERVER_HOST}:${
-			import.meta.env.GANE_SERVER_PORT
+		`ws://${import.meta.env.VITE_GAME_SERVER_HOST}:${
+			import.meta.env.VITE_GAME_SERVER_PORT
 		}/rooms/${roomId}/join?userId=${userId}`
 	);
 

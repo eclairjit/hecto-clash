@@ -5,6 +5,7 @@ import {
 	storeToken,
 } from "../repositories/user.js";
 import { generateToken } from "../utils/jwt.js";
+import redisClient, { isRedisAvailable } from "../config/redis.js";
 
 const loginOrSignUpUser = async (email, username, profilePic) => {
 	try {
@@ -21,6 +22,13 @@ const loginOrSignUpUser = async (email, username, profilePic) => {
 
 			if (!result) {
 				throw new Error("Error storing token");
+			}
+
+			if (isRedisAvailable) {
+				await redisClient.set(
+					`userId-${existingUser.id}`,
+					existingUser.username
+				);
 			}
 
 			return {
@@ -41,8 +49,12 @@ const loginOrSignUpUser = async (email, username, profilePic) => {
 
 		console.log("Token stored successfully:", result);
 
+		if (isRedisAvailable) {
+			await redisClient.set(`userId-${newUser.id}`, newUser.username);
+		}
+
 		return {
-			... newUser,
+			...newUser,
 			token,
 		};
 	} catch (error) {

@@ -168,6 +168,16 @@ func main() {
 			RatingAfter: newLoserRating,
 		}
 
+		if err := app.cacheStorage.LeaderBoard.Add(ctx, winnerID, newWinnerRating); err != nil {
+			log.Printf("Failed to update winner rating for room %s: %v\n", roomID, err)
+			return
+		}
+
+		if err := app.cacheStorage.LeaderBoard.Add(ctx, loserID, newLoserRating); err != nil {
+			log.Printf("Failed to update loser rating for room %s: %v\n", roomID, err)
+			return
+		}
+
 		if err := app.store.Ratings.UpdateRatings(ctx, player1Rating, player2Rating); err != nil {
 			log.Printf("Failed to update winner rating for room %s: %v\n", roomID, err)
 			return

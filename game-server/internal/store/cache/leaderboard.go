@@ -18,7 +18,7 @@ func (s *LeaderboardStore) Add(ctx context.Context, playerID int64, rating int) 
 	username, err := s.rdb.Get(ctx, cacheKey).Result()
 
 	if err == redis.Nil {
-		return errors.New("username not found")
+		return errors.New("username key not found")
 	} else if err != nil {
 		return err
 	}
